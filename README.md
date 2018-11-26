@@ -1,1 +1,1 @@
-# re:Invent Worker Safety Demo Workshop
+# re:Invent Edge ML inference and Sumerian workshop
