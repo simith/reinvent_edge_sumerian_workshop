@@ -1,1 +1,1 @@
-# reinvent_edge_sumerian_workshop
+# re:Invent Worker Safety Demo Workshop
