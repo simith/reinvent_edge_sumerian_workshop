@@ -1,5 +1,4 @@
 'use strict';
-
 // The sumerian object can be used to access Sumerian engine
 // types.
 //
@@ -10,7 +9,9 @@
 
 
 var client;
-var cristineIsTalking = false;
+var cristineIsTalking = true;
+var lastPrediction;
+var startSpeech = false;
 
 
 // Called on every physics update, after setup(). When used in a 
@@ -53,7 +54,7 @@ function exit(args, ctx) {}
 //
 function cleanup(args, ctx) {
 
-    client.unsubscribe("my/things/something");
+    client.unsubscribe("security/gate_00/prediction");
     console.log("Unsubscribing now");
     client.disconnect();
 }
@@ -150,11 +151,34 @@ function playSpeech(msg) {
 
 }
 
+function playSubscribing(msg) {
+
+
+    const speech = new sumerian.Speech();
+    speech.body = msg;
+    speech.type = 'ssml';
+
+
+    speech.updateConfig({
+        entity: ctxt.entity
+    });
+
+    const speechComponent = ctxt.entity.getComponent('SpeechComponent');
+
+
+    speechComponent.addSpeech(speech);
+    speech.play().then(() => {
+
+        setCristineTalkingState(false);
+        startSpeech = true;
+    });
+}
+
 
 function subscribe() {
 
 
-    playSpeech("Subscribing now...to security/gate_00/prediction");
+    playSubscribing("Starting demo for Vest detection...");
     client.subscribe("security/gate_00/prediction");
     console.log("subscribed to topic");
 
@@ -243,22 +267,9 @@ function getPrediction(jsonObjectPrediction) {
         if (haveVest(jsonObjectPrediction)) {
             //person with vest
             prediction = "person_vest";
-            if (haveHelmet(jsonObjectPrediction)) {
-                //person with vest and helmet
-                prediction = "person_vest_helmet";
-            } else {
-                //already set, just for clarity, remove later 
-                prediction = "person_vest";
-            }
 
-        } else {
-            if (haveHelmet(jsonObjectPrediction)) {
-
-                prediction = "person_helmet";
-            }
 
         }
-
 
     } else {
         console.log("Not a single person, nothing to do");
@@ -281,8 +292,20 @@ function onMessage(message) {
     var len = getJsonItemCount(receivedMsg);
     console.log("Item count:" + len);
 
+    //make sure cristine has said something
+
+    if (startSpeech == false) {
+
+        return;
+    }
+
 
     var prediction = getPrediction(receivedMsg);
+
+    if (lastPrediction == prediction)
+        return;
+
+    lastPrediction = prediction;
 
     if (prediction == "none")
         return;
@@ -313,7 +336,7 @@ function connectToAWSIoT() {
     AWS.config.region = 'us-west-2';
 
     var params = {
-        IdentityPoolId: 'AWS_IDENTITY_POOL_ID'
+        IdentityPoolId: 'us-west-2:73d6f77b-bf39-4e41-8d42-c2f0930f3fbe'
     };
 
     var cognitoidentity = new AWS.CognitoIdentity();
@@ -339,7 +362,7 @@ function connectToAWSIoT() {
                     console.log(data);
                     var endpoint = createEndpoint(
                         'us-west-2', // YOUR REGION
-                        'AWS_IOT_ENDPOINT', // YOUR IoT ENDPOINT  
+                        'a1qcrinz7qykdk-ats.iot.us-west-2.amazonaws.com', // YOUR IoT ENDPOINT  
                         data.Credentials.AccessKeyId, // YOUR ACCESS KEY    
                         data.Credentials.SecretKey,
                         data.Credentials.SessionToken); // YOUR SECRET ACCESS KEY   
@@ -383,7 +406,11 @@ function updateUiWithPrediction(prediction) {
 
     var goDiv = '<div id="statusDiv"><img width="100" height="100" id="statusImg" src="https://media.istockphoto.com/vectors/shiny-icon-with-the-word-go-vector-id167172486?k=6&m=167172486&s=612x612&w=0&h=q0aVHmB9U9p5Wzd8rKpnJSp8yr5PTcIZ-T3XyW7W_lk="></div>';
 
-    var dangerDiv = '<div id="statusDiv"><img width="100" height="100" id="statusImg" src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSYntPPmdEI_XoeYQFUHjYKdxH-8jllhTdwznAz4VNsKhsyPFHF"></div>'
+
+
+
+    var vestMissing = '<div><img src="https://img.auctiva.com/imgdata/0/9/8/9/7/4/webimg/680404384_tp.jpg" width="100" height="100"></div>';
+
 
     switch (prediction) {
 
@@ -391,32 +418,19 @@ function updateUiWithPrediction(prediction) {
         case "person":
             {
 
-                playSpeech("Please wear a Helmet and Vest to Enter");
-                document.getElementById('canvas_div').innerHTML = dangerDiv;
-
-            }
-            break;
-
-        case "person_helmet":
-            {
                 playSpeech("Please wear a Vest to Enter");
-                document.getElementById('canvas_div').innerHTML = dangerDiv;
+                document.getElementById('canvas_div').innerHTML = vestMissing;
+
             }
             break;
+
+
 
         case "person_vest":
             {
-                playSpeech("Please wear a Helmet to Enter");
-            }
-            document.getElementById('canvas_div').innerHTML = dangerDiv;
-            break;
 
-        case "person_vest_helmet":
-            {
-
-                playSpeech("You are good to go mate");
+                playSpeech("You are good to go, have a great day!");
                 document.getElementById('canvas_div').innerHTML = goDiv;
-
             }
             break;
 
@@ -426,6 +440,9 @@ function updateUiWithPrediction(prediction) {
             }
             break;
 
+
+
+            lastPrediction = prediction;
     }
 
 
