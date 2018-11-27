@@ -1,1 +1,1 @@
-# reinvent_edge_sumerian_workshop
+# re:Invent Edge ML inference and Sumerian workshop
