@@ -362,7 +362,7 @@ function connectToAWSIoT() {
                     console.log(data);
                     var endpoint = createEndpoint(
                         'us-west-2', // YOUR REGION
-                        'a1qcrinz7qykdk-ats.iot.us-west-2.amazonaws.com', // YOUR IoT ENDPOINT  
+                        'AWS_IOT_ENDPOINT_REPLACE_ME', // ReplaceYOUR IoT ENDPOINT  
                         data.Credentials.AccessKeyId, // YOUR ACCESS KEY    
                         data.Credentials.SecretKey,
                         data.Credentials.SessionToken); // YOUR SECRET ACCESS KEY   
