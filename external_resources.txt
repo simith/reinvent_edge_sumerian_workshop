@@ -1,3 +1,5 @@
+Please add these files one by one and don't forget to hit Save to save the script at the bottom of the page.
+
 https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js
 https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.11.2/moment.min.js
 https://cdnjs.cloudflare.com/ajax/libs/crypto-js/3.1.2/components/hmac-min.js
